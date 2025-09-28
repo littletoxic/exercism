@@ -39,11 +39,11 @@ jobs:
       
       - name: Enable auto-merge
         if: steps.check-branch.outputs.is_sync_branch == 'true'
-        run: |
-          echo "🚀 Enabling auto-merge for PR #${{ github.event.pull_request.number }}"
-          gh pr merge ${{ github.event.pull_request.number }} --merge --auto
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: peter-evans/enable-pull-request-automerge@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          pull-request-number: ${{ github.event.pull_request.number }}
+          merge-method: merge
       
       - name: Skip non-sync branch
         if: steps.check-branch.outputs.is_sync_branch == 'false'
