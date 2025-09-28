@@ -34,20 +34,21 @@ jobs:
             echo "is_sync_branch=false" >> $GITHUB_OUTPUT
           fi
       
-      - name: Auto-approve PR
+      - name: Auto-approve and enable auto-merge
         if: steps.check-branch.outputs.is_sync_branch == 'true'
-        uses: juliangruber/approve-pull-request-action@v2
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          number: ${{ github.event.pull_request.number }}
-      
-      - name: Enable auto-merge
-        if: steps.check-branch.outputs.is_sync_branch == 'true'
-        uses: peter-evans/enable-pull-request-automerge@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          pull-request-number: ${{ github.event.pull_request.number }}
-          merge-method: merge
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          REPO="${{ github.repository }}"
+          
+          echo "🔍 Approving PR #${PR_NUMBER}..."
+          gh pr review ${PR_NUMBER} --repo ${REPO} --approve --body "✅ Auto-approved: exercism-sync PR"
+          
+          echo "🔄 Enabling auto-merge for PR #${PR_NUMBER}..."
+          gh pr merge ${PR_NUMBER} --repo ${REPO} --auto --merge
+          
+          echo "✅ Auto-merge enabled successfully!"
       
       - name: Skip non-sync branch
         if: steps.check-branch.outputs.is_sync_branch == 'false'
